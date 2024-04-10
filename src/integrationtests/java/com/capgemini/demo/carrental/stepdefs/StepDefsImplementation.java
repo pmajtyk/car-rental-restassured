@@ -3,6 +3,10 @@ package com.capgemini.demo.carrental.stepdefs;
 import static com.capgemini.demo.carrental.util.ConstantUtils.CAR_SERVICE_ADDRESS;
 import static com.capgemini.demo.carrental.util.ConstantUtils.ENDPOINT_SELECTOR;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import com.capgemini.demo.carrental.model.Car;
@@ -24,8 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.web.JsonPath;
+import org.springframework.http.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.client.RestTemplate;
 
@@ -41,6 +45,8 @@ public class StepDefsImplementation {
     private String responseBody;
     private Integer id;
 
+    private JSONObject inputCar;
+    private String text;
     @Autowired
     private RestTemplateUtils restTemplateUtils;
 
@@ -68,10 +74,16 @@ public class StepDefsImplementation {
 
     @When("I send request with content type {string} to the service")
     public void i_send_request_with_content_type_to_the_service(String contentType) {
-        ResponseEntity<String> response = restTemplateUtils.processHttpRequest(requestType, requestBody.toString(), requestUrl, contentType);
-        Map<ResponseElementsEnum, String> responseElements = restTemplateUtils.retrieveResponseBodyAndStatusCode(response);
-        responseStatusCode = responseElements.get(ResponseElementsEnum.RESPONSE_STATUS_CODE);
-        responseBody = responseElements.get(ResponseElementsEnum.RESPONSE_BODY);
+//        ResponseEntity<String> response = restTemplateUtils.processHttpRequest(requestType, requestBody.toString(), requestUrl, contentType);
+//        Map<ResponseElementsEnum, String> responseElements = restTemplateUtils.retrieveResponseBodyAndStatusCode(response);
+//        responseStatusCode = responseElements.get(ResponseElementsEnum.RESPONSE_STATUS_CODE);
+//        responseBody = responseElements.get(ResponseElementsEnum.RESPONSE_BODY);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.valueOf(contentType));
+        HttpEntity<String > entity = new HttpEntity<>(text, httpHeaders);
+
+        ResponseEntity<String> respPostJO = restTemplate.postForEntity(requestUrl, entity, String.class);
+        System.out.println("");
     }
 
     @Then("the retrieved body should contains the {string} {string} and the {string} {string} and the status code {string}")
@@ -84,9 +96,13 @@ public class StepDefsImplementation {
 
     @Given("the REST service with initial {string} endpoint is available and the {string} method is supported")
     public void theRESTServiceWithInitialEndpointIsAvailableAndTheMethodIsSupported(String arg0, String arg1) {
+        requestUrl = "http://localhost:8080/api/v1/car";
     }
 
     @And("input data is taken from {string}")
-    public void inputDataIsTakenFrom(String arg0) {
+    public void inputDataIsTakenFrom(String fileName) throws IOException, JSONException {
+        String pathToDir = "src/integrationtests/resources/inputtestdata/";
+        text = new String(Files.readAllBytes(Paths.get(pathToDir.concat(fileName))), StandardCharsets.UTF_8);
+        inputCar = new JSONObject(text);
     }
 }
