@@ -9,6 +9,7 @@ import com.capgemini.demo.carrental.model.Car;
 import com.capgemini.demo.carrental.model.Rental;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -79,5 +80,13 @@ public class StepDefsImplementation {
         JSONObject jsonResponseBody = new JSONObject(responseBody);
         Assert.assertEquals(brandName, jsonResponseBody.get(brandKey).toString());
         Assert.assertEquals(modelName, jsonResponseBody.get(modelKey).toString());
+    }
+
+    @Given("the REST service with initial {string} endpoint is available and the {string} method is supported")
+    public void theRESTServiceWithInitialEndpointIsAvailableAndTheMethodIsSupported(String arg0, String arg1) {
+    }
+
+    @And("input data is taken from {string}")
+    public void inputDataIsTakenFrom(String arg0) {
     }
 }
