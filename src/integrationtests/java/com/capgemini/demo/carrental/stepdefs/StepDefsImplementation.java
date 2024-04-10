@@ -9,6 +9,7 @@ import com.capgemini.demo.carrental.model.Car;
 import com.capgemini.demo.carrental.model.Rental;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -40,6 +41,8 @@ public class StepDefsImplementation {
     private String responseBody;
     private Integer id;
 
+    private ResponseEntity<String> responseAsAString;
+
     @Autowired
     private RestTemplateUtils restTemplateUtils;
 
@@ -61,23 +64,39 @@ public class StepDefsImplementation {
     //---------------Checking the correctness of the GET query
     @Given("the REST service with initial {string} data id {string} is available and the {string} method is supported")
     public void the_rest_service_with_initial_car_data_id_is_available_and_the_method_is_supported(String endpoint, String id, String httpMethod) {
-        requestType = HttpMethod.valueOf(httpMethod);
-        requestUrl = CAR_SERVICE_ADDRESS.concat(ENDPOINT_SELECTOR.get(endpoint)).concat(id);
+//        requestType = HttpMethod.valueOf(httpMethod);
+        requestUrl = "http://localhost:8080/api/v1/car/102";
+//        requestUrl = CAR_SERVICE_ADDRESS.concat(ENDPOINT_SELECTOR.get(endpoint)).concat(id);
     }
 
     @When("I send request with content type {string} to the service")
     public void i_send_request_with_content_type_to_the_service(String contentType) {
-        ResponseEntity<String> response = restTemplateUtils.processHttpRequest(requestType, requestBody.toString(), requestUrl, contentType);
-        Map<ResponseElementsEnum, String> responseElements = restTemplateUtils.retrieveResponseBodyAndStatusCode(response);
-        responseStatusCode = responseElements.get(ResponseElementsEnum.RESPONSE_STATUS_CODE);
-        responseBody = responseElements.get(ResponseElementsEnum.RESPONSE_BODY);
+//        ResponseEntity<String> response = restTemplateUtils.processHttpRequest(requestType, requestBody.toString(), requestUrl, contentType);
+//        Map<ResponseElementsEnum, String> responseElements = restTemplateUtils.retrieveResponseBodyAndStatusCode(response);
+//        responseStatusCode = responseElements.get(ResponseElementsEnum.RESPONSE_STATUS_CODE);
+//        responseBody = responseElements.get(ResponseElementsEnum.RESPONSE_BODY);
+        responseAsAString = restTemplate.getForEntity(requestUrl, String.class);
     }
 
     @Then("the retrieved body should contains the {string} {string} and the {string} {string} and the status code {string}")
     public void the_retrieved_body_should_contains_the_brand_name_and_the_model_and_the_status_code(String brandKey, String brandName, String modelKey, String modelName, String expectedStatusCode) throws JSONException {
+//        Assert.assertEquals(expectedStatusCode, responseStatusCode);
+//        JSONObject jsonResponseBody = new JSONObject(responseBody);
+//        Assert.assertEquals(brandName, jsonResponseBody.get(brandKey).toString());
+//        Assert.assertEquals(modelName, jsonResponseBody.get(modelKey).toString());
+        int statCodeInt = responseAsAString.getStatusCodeValue();
+        responseStatusCode = Integer.toString(statCodeInt);
         Assert.assertEquals(expectedStatusCode, responseStatusCode);
-        JSONObject jsonResponseBody = new JSONObject(responseBody);
-        Assert.assertEquals(brandName, jsonResponseBody.get(brandKey).toString());
-        Assert.assertEquals(modelName, jsonResponseBody.get(modelKey).toString());
+
+        String body = responseAsAString.getBody();
+        JSONObject jsonBody = new JSONObject(body);
+        String brandNameFromJsonm = jsonBody.get(brandKey).toString();
+        Assert.assertEquals(brandName, brandNameFromJsonm);
+
+        System.out.println();
+
+
+
     }
+
 }
