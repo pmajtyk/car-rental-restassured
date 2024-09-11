@@ -1,4 +1,5 @@
 import io.restassured.RestAssured;
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.apache.http.protocol.HTTP;
@@ -39,6 +40,24 @@ public class carrentalIntegrationTests {
 //        System.out.println("body = " + responseBody.body().asString());
 
         assertThat(responseBody.getStatusCode()).isEqualTo(200);
+    }
+
+    @Test
+    public void getACarTest() {
+        System.out.println("appUrl = " + endpoint);
+        int carId = 100;
+        Response responseBody = given()
+                .when()
+                .get(carEndpoint + "/" + Integer.toString(carId))
+                .then()
+                .extract().response();
+        JsonPath car = responseBody.getBody().jsonPath();
+        System.out.println("status = " +responseBody.getStatusCode());
+        System.out.println("model = " + car.getString("model"));
+
+        assertThat(responseBody.getStatusCode()).isEqualTo(200);
+        assertThat(car.getString("model")).isEqualTo("Astra");
+
     }
 
 
