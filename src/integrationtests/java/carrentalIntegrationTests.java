@@ -37,7 +37,6 @@ public class carrentalIntegrationTests {
                 .extract().response();
 
         System.out.println("status = " +responseBody.getStatusCode());
-//        System.out.println("body = " + responseBody.body().asString());
 
         assertThat(responseBody.getStatusCode()).isEqualTo(200);
     }
