@@ -1,5 +1,6 @@
-package com.capgemini.carrental;
+package com.capgemini.demo.carrental;
 
+import com.capgemini.carrental.RentalCarsApplication;
 import com.capgemini.demo.carrental.model.Car;
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
