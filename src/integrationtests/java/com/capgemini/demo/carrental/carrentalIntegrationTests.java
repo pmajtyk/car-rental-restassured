@@ -1,6 +1,8 @@
 package com.capgemini.demo.carrental;
 
 import com.capgemini.carrental.RentalCarsApplication;
+import com.capgemini.carrental.model.Gender;
+import com.capgemini.carrental.model.Tenant;
 import com.capgemini.demo.carrental.model.Car;
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
@@ -31,6 +33,8 @@ public class carrentalIntegrationTests {
     private String rentalEndpoint;
     private String endpoint;
     private Long addedCarId;
+    private Long addedTenantId;
+    private Long addedRentalId;
     private static final String CAR_ENDPOINT = "/api/v1/car";
     private static final String TENANT_ENDPOINT = "/api/v1/tenant";
     private static final String RENTAL_ENDPOINT = "/api/v1/rental/search";
@@ -52,6 +56,12 @@ public class carrentalIntegrationTests {
     public void tearDown() {
         if (addedCarId != null) {
             jdbcTemplate.update("DELETE FROM cars WHERE id = ?", addedCarId);
+        }
+        if (addedTenantId != null) {
+            jdbcTemplate.update("DELETE FROM tenants WHERE id = ?", addedTenantId);
+        }
+        if (addedRentalId != null) {
+            jdbcTemplate.update("DELETE FROM rentals WHERE id = ?", addedRentalId);
         }
     }
 
@@ -156,6 +166,33 @@ public class carrentalIntegrationTests {
         System.out.println("id of created car = " +car.getString("id"));
         System.out.println("model = " + car.getString("model"));
 
+        assertThat(responseBody.getStatusCode()).isEqualTo(201);
+        assertThat(car.getString("model")).isEqualTo("Outback");
+
+    }
+
+    @Test
+    public void postATenantTest() {
+        System.out.println("appUrl = " + endpoint);
+        Tenant newTenant = new Tenant();
+        newTenant.setAge(21);
+        newTenant.setGender(Gender.MALE);
+        newTenant.setName("Kazimierz");
+        Response responseBody = given()
+                .contentType("application/json")
+                .body(newTenant)
+                .when()
+                .post(tenantEndpoint)
+                .then()
+                .extract().response();
+        JsonPath tenant = responseBody.getBody().jsonPath();
+        addedTenantId = Long.parseLong(tenant.getString("id"));
+        System.out.println("status = " +responseBody.getStatusCode());
+        System.out.println("id of created tenant = " +tenant.getString("id"));
+        System.out.println("name = " + tenant.getString("name"));
+
+        assertThat(responseBody.getStatusCode()).isEqualTo(201);
+        assertThat(tenant.getString("name")).isEqualTo("Kazimierz");
     }
 
 //    @Test
