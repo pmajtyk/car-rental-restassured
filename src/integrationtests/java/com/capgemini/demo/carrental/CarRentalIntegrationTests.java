@@ -22,8 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = RentalCarsApplication.class)
 @ActiveProfiles("test")
-public class carrentalIntegrationTests {
+public class CarRentalIntegrationTests {
 
+    @SuppressWarnings("unused")
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -69,7 +70,7 @@ public class carrentalIntegrationTests {
     @Test
     public void smokeTest_car() {
         System.out.println("appUrl = " + endpoint);
-        Response responseBody = given()
+        Response responseBody = requestSpecification
                 .when()
                 .get(carEndpoint)
                 .then()
@@ -83,7 +84,7 @@ public class carrentalIntegrationTests {
     @Test
     public void smokeTest_tenant() {
         System.out.println("appUrl = " + endpoint);
-        Response responseBody = given()
+        Response responseBody = requestSpecification
                 .when()
                 .get(tenantEndpoint)
                 .then()
@@ -97,7 +98,7 @@ public class carrentalIntegrationTests {
     @Test
     public void smokeTest_rental() {
         System.out.println("appUrl = " + endpoint);
-        Response responseBody = given()
+        Response responseBody = requestSpecification
                 .when()
                 .get(rentalEndpoint)
                 .then()
@@ -112,13 +113,13 @@ public class carrentalIntegrationTests {
     public void getACarTest() {
         System.out.println("appUrl = " + endpoint);
         int carId = 100;
-        Response responseBody = given()
+        Response responseBody = requestSpecification
                 .when()
-                .get(carEndpoint + "/" + Integer.toString(carId))
+                .get(carEndpoint + "/" + carId)
                 .then()
                 .extract().response();
-        JsonPath car = responseBody.getBody().jsonPath();
         System.out.println("status = " +responseBody.getStatusCode());
+        JsonPath car = responseBody.getBody().jsonPath();
         System.out.println("model = " + car.getString("model"));
 
         assertThat(responseBody.getStatusCode()).isEqualTo(200);
@@ -130,13 +131,13 @@ public class carrentalIntegrationTests {
     public void getATenantTest() {
         System.out.println("appUrl = " + endpoint);
         int tenantId = 100;
-        Response responseBody = given()
+        Response responseBody = requestSpecification
                 .when()
-                .get(tenantEndpoint + "/" + Integer.toString(tenantId))
+                .get(tenantEndpoint + "/" + tenantId)
                 .then()
                 .extract().response();
-        JsonPath tenant = responseBody.getBody().jsonPath();
         System.out.println("status = " +responseBody.getStatusCode());
+        JsonPath tenant = responseBody.getBody().jsonPath();
         System.out.println("name = " + tenant.getString("name"));
 
         assertThat(responseBody.getStatusCode()).isEqualTo(200);
@@ -153,21 +154,105 @@ public class carrentalIntegrationTests {
         newCar.setBodyType("COMBI");
         newCar.setFuelType("PETROL");
         newCar.setYear(2020);
-        Response responseBody = given()
+        Response addRresponseBody = requestSpecification
                 .contentType("application/json")
                 .body(newCar)
                 .when()
                 .post(carEndpoint)
                 .then()
                 .extract().response();
-        JsonPath car = responseBody.getBody().jsonPath();
+        JsonPath car = addRresponseBody.getBody().jsonPath();
+        System.out.println("status = " +addRresponseBody.getStatusCode());
         addedCarId = Long.parseLong(car.getString("id"));
-        System.out.println("status = " +responseBody.getStatusCode());
         System.out.println("id of created car = " +car.getString("id"));
         System.out.println("model = " + car.getString("model"));
 
-        assertThat(responseBody.getStatusCode()).isEqualTo(201);
+        assertThat(addRresponseBody.getStatusCode()).isEqualTo(201);
         assertThat(car.getString("model")).isEqualTo("Outback");
+
+    }
+
+    @Test
+    public void putACarTest() {
+        System.out.println("appUrl = " + endpoint);
+        Car newCar = new Car();
+        newCar.setBrand("Subaru");
+        newCar.setModel("Justy");
+        newCar.setBodyType("SEDAN");
+        newCar.setFuelType("PETROL");
+        newCar.setYear(2000);
+        Response addRresponseBody = requestSpecification
+                .contentType("application/json")
+                .body(newCar)
+                .when()
+                .post(carEndpoint)
+                .then()
+                .extract().response();
+        System.out.println("status = " +addRresponseBody.getStatusCode());
+        JsonPath car = addRresponseBody.getBody().jsonPath();
+        addedCarId = Long.parseLong(car.getString("id"));
+        System.out.println("id of created car = " +car.getString("id"));
+        newCar.setBodyType("HATCHBACK");
+        newCar.setYear(1999);
+        Response updateResponseBody = requestSpecification
+                .contentType("application/json")
+                .body(newCar)
+                .when()
+                .put(carEndpoint+ "/" + addedCarId)
+                .then()
+                .extract().response();
+        System.out.println("status = " +updateResponseBody.getStatusCode());
+        JsonPath updatedCar = updateResponseBody.getBody().jsonPath();
+        System.out.println("model = " + updatedCar.getString("model"));
+
+        assertThat(updateResponseBody.getStatusCode()).isEqualTo(200);
+        assertThat(updatedCar.getString("bodyType")).isEqualTo("HATCHBACK");
+        assertThat(updatedCar.getString("year")).isEqualTo("1999");
+
+    }
+
+    @Test
+    public void deleteACarTest() {
+        System.out.println("appUrl = " + endpoint);
+        Car newCar = new Car();
+        newCar.setBrand("Suzuki");
+        newCar.setModel("Jimny");
+        newCar.setBodyType("COMBI");
+        newCar.setFuelType("PETROL");
+        newCar.setYear(2005);
+        Response addRresponseBody = requestSpecification
+                .contentType("application/json")
+                .body(newCar)
+                .when()
+                .post(carEndpoint)
+                .then()
+                .extract().response();
+        System.out.println("status = " +addRresponseBody.getStatusCode());
+        JsonPath car = addRresponseBody.getBody().jsonPath();
+        addedCarId = Long.parseLong(car.getString("id"));
+        System.out.println("id of created car = " +car.getString("id"));
+        Response deletedResponseBody = requestSpecification
+                .contentType("application/json")
+                .when()
+                .delete(carEndpoint+ "/" + addedCarId)
+                .then()
+                .extract().response();
+        System.out.println("status = " +deletedResponseBody.getStatusCode());
+
+        assertThat(deletedResponseBody.getStatusCode()).isEqualTo(200);
+        JsonPath deletedCar = deletedResponseBody.getBody().jsonPath();
+        System.out.println("model = " + deletedCar.getString("model"));
+        assertThat(deletedCar.getString("bodyType")).isEqualTo("COMBI");
+        assertThat(deletedCar.getString("year")).isEqualTo("2005");
+
+        Response responseBody = requestSpecification
+                .when()
+                .get(tenantEndpoint + "/" + addedCarId)
+                .then()
+                .extract().response();
+        System.out.println("status = " +responseBody.getStatusCode());
+        assertThat(responseBody.getStatusCode()).isEqualTo(404);
+
 
     }
 
@@ -178,7 +263,7 @@ public class carrentalIntegrationTests {
         newTenant.setAge(21);
         newTenant.setGender(Gender.MALE);
         newTenant.setName("Kazimierz");
-        Response responseBody = given()
+        Response responseBody = requestSpecification
                 .contentType("application/json")
                 .body(newTenant)
                 .when()
@@ -186,14 +271,16 @@ public class carrentalIntegrationTests {
                 .then()
                 .extract().response();
         JsonPath tenant = responseBody.getBody().jsonPath();
-        addedTenantId = Long.parseLong(tenant.getString("id"));
         System.out.println("status = " +responseBody.getStatusCode());
+        addedTenantId = Long.parseLong(tenant.getString("id"));
         System.out.println("id of created tenant = " +tenant.getString("id"));
         System.out.println("name = " + tenant.getString("name"));
 
         assertThat(responseBody.getStatusCode()).isEqualTo(201);
         assertThat(tenant.getString("name")).isEqualTo("Kazimierz");
     }
+
+
 
 //    @Test
 //    public void getARentalTest() {
