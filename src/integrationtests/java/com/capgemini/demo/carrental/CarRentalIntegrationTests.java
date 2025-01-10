@@ -263,23 +263,102 @@ public class CarRentalIntegrationTests {
         newTenant.setAge(21);
         newTenant.setGender(Gender.MALE);
         newTenant.setName("Kazimierz");
-        Response responseBody = requestSpecification
+        Response addResponseBody = requestSpecification
                 .contentType("application/json")
                 .body(newTenant)
                 .when()
                 .post(tenantEndpoint)
                 .then()
                 .extract().response();
-        JsonPath tenant = responseBody.getBody().jsonPath();
-        System.out.println("status = " +responseBody.getStatusCode());
+        System.out.println("status = " +addResponseBody.getStatusCode());
+        JsonPath tenant = addResponseBody.getBody().jsonPath();
         addedTenantId = Long.parseLong(tenant.getString("id"));
         System.out.println("id of created tenant = " +tenant.getString("id"));
         System.out.println("name = " + tenant.getString("name"));
 
-        assertThat(responseBody.getStatusCode()).isEqualTo(201);
+        assertThat(addResponseBody.getStatusCode()).isEqualTo(201);
         assertThat(tenant.getString("name")).isEqualTo("Kazimierz");
     }
 
+    @Test
+    public void putATenantTest() {
+        System.out.println("appUrl = " + endpoint);
+        Tenant newTenant = new Tenant();
+        newTenant.setAge(21);
+        newTenant.setGender(Gender.MALE);
+        newTenant.setName("Kazimierz");
+        Response addResponseBody = requestSpecification
+                .contentType("application/json")
+                .body(newTenant)
+                .when()
+                .post(tenantEndpoint)
+                .then()
+                .extract().response();
+        System.out.println("status = " +addResponseBody.getStatusCode());
+        JsonPath tenant = addResponseBody.getBody().jsonPath();
+        addedTenantId = Long.parseLong(tenant.getString("id"));
+        System.out.println("id of created tenant = " +tenant.getString("id"));
+        System.out.println("name = " + tenant.getString("name"));
+        newTenant.setAge(23);
+        newTenant.setName("Kaźmirz");
+        Response updateResponseBody = requestSpecification
+                .contentType("application/json")
+                .body(newTenant)
+                .when()
+                .put(tenantEndpoint+ "/" + addedTenantId)
+                .then()
+                .extract().response();
+        System.out.println("status = " +updateResponseBody.getStatusCode());
+        JsonPath updatedTenant = updateResponseBody.getBody().jsonPath();
+        addedTenantId = Long.parseLong(updatedTenant.getString("id"));
+        System.out.println("name = " + updatedTenant.getString("name"));
+
+
+        assertThat(updateResponseBody.getStatusCode()).isEqualTo(200);
+        assertThat(updatedTenant.getString("age")).isEqualTo("23");
+        assertThat(updatedTenant.getString("name")).isEqualTo("Kaźmirz");
+    }
+
+    @Test
+    public void deleteATenantTest() {
+        System.out.println("appUrl = " + endpoint);
+        Tenant newTenant = new Tenant();
+        newTenant.setAge(21);
+        newTenant.setGender(Gender.MALE);
+        newTenant.setName("Kazimierz");
+        Response addRresponseBody = requestSpecification
+                .contentType("application/json")
+                .body(newTenant)
+                .when()
+                .post(tenantEndpoint)
+                .then()
+                .extract().response();
+        System.out.println("status = " +addRresponseBody.getStatusCode());
+        JsonPath tenant = addRresponseBody.getBody().jsonPath();
+        addedTenantId = Long.parseLong(tenant.getString("id"));
+        System.out.println("id of created tenant = " +tenant.getString("id"));
+        Response deletedResponseBody = requestSpecification
+                .contentType("application/json")
+                .when()
+                .delete(tenantEndpoint+ "/" + addedTenantId)
+                .then()
+                .extract().response();
+        System.out.println("status = " +deletedResponseBody.getStatusCode());
+
+        assertThat(deletedResponseBody.getStatusCode()).isEqualTo(200);
+        JsonPath deletedTenant = deletedResponseBody.getBody().jsonPath();
+        System.out.println("gender = " + deletedTenant.getString("gender"));
+        assertThat(deletedTenant.getString("gender")).isEqualTo("MALE");
+        assertThat(deletedTenant.getString("age")).isEqualTo("21");
+
+        Response responseBody = requestSpecification
+                .when()
+                .get(tenantEndpoint + "/" + addedTenantId)
+                .then()
+                .extract().response();
+        System.out.println("status = " +responseBody.getStatusCode());
+        assertThat(responseBody.getStatusCode()).isEqualTo(404);
+    }
 
 
 //    @Test
@@ -288,11 +367,11 @@ public class CarRentalIntegrationTests {
 //        int rentalId = 0;
 //        Response responseBody = given()
 //                .when()
-//                .get(rentalEndpoint + "/" + Integer.toString(rentalId))
+//                .get(rentalEndpoint + "/" + rentalId)
 //                .then()
 //                .extract().response();
-//        JsonPath rental = responseBody.getBody().jsonPath();
 //        System.out.println("status = " +responseBody.getStatusCode());
+//        JsonPath rental = responseBody.getBody().jsonPath();
 //        System.out.println("model = " + rental.getString("model"));
 //
 //        assertThat(responseBody.getStatusCode()).isEqualTo(200);
